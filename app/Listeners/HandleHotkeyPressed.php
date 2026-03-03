@@ -37,7 +37,7 @@ class HandleHotkeyPressed
             'normalized_accel' => $normalized,
         ]);
 
-        $hotkey = Hotkey::where('accelerator', $normalized)
+        $hotkey = Hotkey::query()->where('accelerator', $normalized)
             ->where('enabled', true)
             ->first();
 

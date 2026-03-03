@@ -5,6 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
 
+/**
+ * Singleton settings row (always id = 1).
+ *
+ * @property int $id
+ * @property string $ws_host
+ * @property int $ws_port
+ * @property bool $ws_secure
+ * @property string|null $ws_password  Stored encrypted; accessor returns decrypted value.
+ * @property bool $auto_connect
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Setting extends Model
 {
     protected $fillable = [

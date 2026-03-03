@@ -3,6 +3,7 @@
 namespace App\Services\Hotkeys;
 
 use App\Models\Hotkey;
+use App\Models\HotkeyAction;
 
 class HotkeyExporter
 {
@@ -11,16 +12,16 @@ class HotkeyExporter
      */
     public function export(): string
     {
-        $hotkeys = Hotkey::with('actions')->orderBy('name')->get();
+        $hotkeys = Hotkey::query()->with('actions')->orderBy('name')->get();
 
         $data = [
             'version'  => 1,
             'exported' => now()->toIso8601String(),
-            'hotkeys'  => $hotkeys->map(fn($h) => [
+            'hotkeys'  => $hotkeys->map(fn(Hotkey $h) => [
                 'name'        => $h->name,
                 'accelerator' => $h->accelerator,
                 'enabled'     => $h->enabled,
-                'actions'     => $h->actions->map(fn($a) => [
+                'actions'     => $h->actions->map(fn(HotkeyAction $a) => [
                     'type'    => $a->type,
                     'payload' => $a->payload ?? [],
                 ])->values()->toArray(),
@@ -86,7 +87,7 @@ class HotkeyExporter
         $normalized = AcceleratorNormalizer::normalize($accelerator);
 
         // Upsert: if a hotkey with this accelerator already exists, update it
-        $hotkey = Hotkey::firstOrNew(['accelerator' => $normalized]);
+        $hotkey = Hotkey::query()->firstOrNew(['accelerator' => $normalized]);
         $hotkey->name    = $name;
         $hotkey->enabled = $enabled;
         $hotkey->save();

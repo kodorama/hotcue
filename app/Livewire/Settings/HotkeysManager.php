@@ -68,7 +68,7 @@ class HotkeysManager extends Component
 
     public function loadHotkeys(): void
     {
-        $this->hotkeys = Hotkey::with('actions')->orderBy('name')->get();
+        $this->hotkeys = Hotkey::query()->with('actions')->orderBy('name')->get();
     }
 
     public function create(): void
@@ -80,7 +80,7 @@ class HotkeysManager extends Component
 
     public function edit(int $id): void
     {
-        $hotkey = Hotkey::with('actions')->findOrFail($id);
+        $hotkey = Hotkey::query()->with('actions')->findOrFail($id);
         $this->editingId = $id;
         $this->name = $hotkey->name;
         $this->accelerator = $hotkey->accelerator;
@@ -131,7 +131,7 @@ class HotkeysManager extends Component
         $normalized = AcceleratorNormalizer::normalize($this->accelerator);
 
         // Check for duplicate accelerator among other enabled hotkeys
-        $conflict = Hotkey::where('accelerator', $normalized)
+        $conflict = Hotkey::query()->where('accelerator', $normalized)
             ->where('enabled', true)
             ->when($this->editingId, fn($q) => $q->where('id', '!=', $this->editingId))
             ->exists();
@@ -164,7 +164,7 @@ class HotkeysManager extends Component
         }
 
         if ($this->editingId) {
-            $hotkey = Hotkey::findOrFail($this->editingId);
+            $hotkey = Hotkey::query()->findOrFail($this->editingId);
         } else {
             $hotkey = new Hotkey();
         }
@@ -177,7 +177,7 @@ class HotkeysManager extends Component
         // Replace all actions
         $hotkey->actions()->delete();
         foreach ($effectiveActions as $act) {
-            HotkeyAction::create([
+            HotkeyAction::query()->create([
                 'hotkey_id' => $hotkey->id,
                 'type'      => $act['type'],
                 'payload'   => $act['payload'] ?? [],
@@ -193,7 +193,7 @@ class HotkeysManager extends Component
 
     public function delete(int $id): void
     {
-        $hotkey = Hotkey::findOrFail($id);
+        $hotkey = Hotkey::query()->findOrFail($id);
         $this->unregisterHotkey($id);
         $hotkey->delete();
         $this->loadHotkeys();
@@ -201,7 +201,7 @@ class HotkeysManager extends Component
 
     public function toggleEnabled(int $id): void
     {
-        $hotkey = Hotkey::findOrFail($id);
+        $hotkey = Hotkey::query()->findOrFail($id);
         $hotkey->enabled = !$hotkey->enabled;
         $hotkey->save();
 
@@ -300,7 +300,7 @@ class HotkeysManager extends Component
      */
     public function testAction(int $id, \App\Services\Obs\ObsDiagnosticsService $diagnostics): void
     {
-        $hotkey = Hotkey::with('actions')->find($id);
+        $hotkey = Hotkey::query()->with('actions')->find($id);
         if (!$hotkey) {
             return;
         }

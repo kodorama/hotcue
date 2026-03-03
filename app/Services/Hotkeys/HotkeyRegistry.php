@@ -17,7 +17,7 @@ class HotkeyRegistry
      */
     public function registerAll(): void
     {
-        $hotkeys = Hotkey::enabled()->get();
+        $hotkeys = Hotkey::query()->enabled()->get();
 
         Log::info('HotkeyRegistry: loading enabled hotkeys', ['count' => $hotkeys->count()]);
 
@@ -126,7 +126,7 @@ class HotkeyRegistry
 
         // Also unregister every enabled hotkey directly from the DB so we
         // clean up Electron-side registrations from previous PHP processes.
-        $allEnabled = Hotkey::enabled()->get();
+        $allEnabled = Hotkey::query()->enabled()->get();
         foreach ($allEnabled as $hotkey) {
             $native = AcceleratorNormalizer::toNativeFormat($hotkey->accelerator);
             // Skip if we already unregistered it via the in-memory map above
@@ -161,7 +161,7 @@ class HotkeyRegistry
     {
         $normalized = AcceleratorNormalizer::normalize($accelerator);
 
-        return Hotkey::enabled()
+        return Hotkey::query()->enabled()
             ->where('accelerator', $normalized)
             ->when($excludeHotkeyId, fn($q) => $q->where('id', '!=', $excludeHotkeyId))
             ->exists();

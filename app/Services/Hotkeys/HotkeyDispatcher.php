@@ -32,7 +32,7 @@ class HotkeyDispatcher
     {
         Log::info('HotkeyDispatcher: hotkey pressed', ['id' => $hotkeyId]);
 
-        $hotkey = Hotkey::with('actions')->find($hotkeyId);
+        $hotkey = Hotkey::query()->with('actions')->find($hotkeyId);
 
         if (!$hotkey) {
             Log::warning('HotkeyDispatcher: hotkey not found in DB', ['id' => $hotkeyId]);
