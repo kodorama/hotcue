@@ -36,11 +36,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\Obs\ObsActionRunner::class, function (Application $app) {
             return new \App\Services\Obs\ObsActionRunner($app->make(ObsConnectionManager::class));
         });
-        $this->app->singleton(\App\Services\Hotkeys\HotkeyDispatcher::class, function (Application $app) {
-            return new \App\Services\Hotkeys\HotkeyDispatcher($app->make(\App\Services\Obs\ObsActionRunner::class));
+        $this->app->singleton(\App\Services\Obs\ObsHotkeyRunner::class, function () {
+            return new \App\Services\Obs\ObsHotkeyRunner();
         });
+        $this->app->singleton(\App\Services\Hotkeys\HotkeyDispatcher::class, function (Application $app) {
+            return new \App\Services\Hotkeys\HotkeyDispatcher($app->make(\App\Services\Obs\ObsHotkeyRunner::class));
+        });
+        // HotkeyRegistry is state-bearing (tracks which hotkeys are registered) so must be a singleton.
+        // It no longer receives HotkeyDispatcher directly; dispatch goes through HandleHotkeyPressed listener.
         $this->app->singleton(\App\Services\Hotkeys\HotkeyRegistry::class, function (Application $app) {
-            return new \App\Services\Hotkeys\HotkeyRegistry($app->make(\App\Services\Hotkeys\HotkeyDispatcher::class));
+            return new \App\Services\Hotkeys\HotkeyRegistry();
         });
     }
 
@@ -49,6 +54,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         $this->configureDefaults();
     }
 

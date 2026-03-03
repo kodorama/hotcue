@@ -80,7 +80,41 @@ class AcceleratorNormalizerTest extends TestCase
     {
         $normalized = AcceleratorNormalizer::normalize('cmd+shift+a');
         $result = AcceleratorNormalizer::toNativeFormat($normalized);
-        $this->assertEquals('Command+shift+a', $result);
+        $this->assertEquals('Cmd+Shift+A', $result);
+    }
+
+    public function test_to_native_format_all_modifiers(): void
+    {
+        $normalized = AcceleratorNormalizer::normalize('cmd+ctrl+alt+shift+1');
+        $result = AcceleratorNormalizer::toNativeFormat($normalized);
+        $this->assertEquals('Cmd+Ctrl+Alt+Shift+1', $result);
+    }
+
+    public function test_to_native_format_function_key(): void
+    {
+        $normalized = AcceleratorNormalizer::normalize('cmd+f13');
+        $result = AcceleratorNormalizer::toNativeFormat($normalized);
+        $this->assertEquals('Cmd+F13', $result);
+    }
+
+    public function test_to_native_format_special_key_space(): void
+    {
+        $normalized = AcceleratorNormalizer::normalize('cmd+space');
+        $result = AcceleratorNormalizer::toNativeFormat($normalized);
+        $this->assertEquals('Cmd+Space', $result);
+    }
+
+    public function test_to_native_format_arrow_key(): void
+    {
+        $normalized = AcceleratorNormalizer::normalize('shift+up');
+        $result = AcceleratorNormalizer::toNativeFormat($normalized);
+        $this->assertEquals('Shift+Up', $result);
+    }
+
+    public function test_to_native_format_bare_function_key(): void
+    {
+        $normalized = AcceleratorNormalizer::normalize('f5');
+        $result = AcceleratorNormalizer::toNativeFormat($normalized);
+        $this->assertEquals('F5', $result);
     }
 }
-

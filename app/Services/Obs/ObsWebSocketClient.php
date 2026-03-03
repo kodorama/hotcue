@@ -153,9 +153,7 @@ class ObsWebSocketClient implements ObsClient
 
     public function close(): void
     {
-        if ($this->connection) {
-            $this->connection->close();
-        }
+        $this->connection?->close();
         $this->cleanup();
     }
 
@@ -479,9 +477,8 @@ class ObsWebSocketClient implements ObsClient
 
     private function computeAuth(string $challenge, string $salt): string
     {
-        $secret      = base64_encode(hash('sha256', $this->password . $salt, true));
-        $authResponse = base64_encode(hash('sha256', $secret . $challenge, true));
-        return $authResponse;
+        $secret = base64_encode(hash('sha256', $this->password . $salt, true));
+        return base64_encode(hash('sha256', $secret . $challenge, true));
     }
 
     private function cleanup(): void
@@ -501,7 +498,7 @@ class ObsWebSocketClient implements ObsClient
         $this->pendingRequests = [];
 
         if ($this->connectDeferred) {
-            // If WS handshake was done but we never got Identified, it's likely an auth failure
+            // If WS handshake was done, but we never got Identified, it's likely an auth failure
             $reason = $wasHandshakeDone
                 ? new ObsAuthFailed('OBS closed connection before Identify — check password')
                 : new ObsNotConnected('Connection closed before WebSocket upgrade');

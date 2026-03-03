@@ -56,12 +56,45 @@ class AcceleratorNormalizer
     }
 
     /**
-     * Convert to NativePHP format for registration.
+     * Convert a stored/normalized accelerator to the NativePHP registration format.
+     *
+     * DB format  : cmd+ctrl+alt+shift+a   (lowercase, short aliases)
+     * NativePHP  : Cmd+Ctrl+Alt+Shift+A   (Title-case modifiers, upper-case key letter)
+     *
+     * Modifier mapping (per docs/GLOBAL_HOTKEYS.md):
+     *   cmd   → Cmd      ctrl  → Ctrl
+     *   alt   → Alt      shift → Shift
+     *
+     * Key:
+     *   Single letters are upper-cased (A-Z).
+     *   Multi-character keys are Title-cased (Space, F13, Up, Down, Esc …).
      */
     public static function toNativeFormat(string $normalized): string
     {
-        // NativePHP uses the same format, but might need Command instead of Cmd
-        return str_replace('cmd', 'Command', $normalized);
+        $modifierMap = [
+            'cmd'   => 'Cmd',
+            'ctrl'  => 'Ctrl',
+            'alt'   => 'Alt',
+            'shift' => 'Shift',
+        ];
+
+        $parts = array_map('trim', explode('+', strtolower($normalized)));
+
+        $converted = array_map(function (string $part) use ($modifierMap): string {
+            if (isset($modifierMap[$part])) {
+                return $modifierMap[$part];
+            }
+
+            // Single letter → upper-case
+            if (strlen($part) === 1) {
+                return strtoupper($part);
+            }
+
+            // Multi-char key (F13, Space, Up, Esc, …) → Title-case
+            return ucfirst($part);
+        }, $parts);
+
+        return implode('+', $converted);
     }
 }
 

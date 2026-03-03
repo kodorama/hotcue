@@ -3,59 +3,58 @@
 namespace App\Services\Hotkeys;
 
 use App\Models\Hotkey;
-use App\Services\Obs\ObsActionRunner;
+use App\Services\Obs\ObsHotkeyRunner;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Resolves a hotkey by ID, loads its actions, and delegates execution to
+ * ObsHotkeyRunner which opens a fresh, isolated ReactPHP event loop per
+ * request.
+ *
+ * WHY NOT ObsActionRunner?
+ * NativePHP runs PHP as `php -S` — every HTTP request (including the
+ * /dispatch-event call that fires when a hotkey is pressed) is a brand-new
+ * PHP process. The shared ObsConnectionManager singleton therefore always
+ * starts disconnected. ObsHotkeyRunner mirrors the ObsDiagnosticsService
+ * pattern: connect → act → disconnect, all within the single request.
+ */
 class HotkeyDispatcher
 {
     public function __construct(
-        private readonly ObsActionRunner $actionRunner
-    ) {
-    }
+        private readonly ObsHotkeyRunner $runner,
+    ) {}
 
     /**
-     * Dispatch a hotkey press event.
+     * Dispatch a hotkey press by id.
+     * Called from HandleHotkeyPressed listener when NativePHP fires HotkeyPressed.
      */
     public function dispatch(int $hotkeyId): void
     {
+        Log::info('HotkeyDispatcher: hotkey pressed', ['id' => $hotkeyId]);
+
         $hotkey = Hotkey::with('actions')->find($hotkeyId);
 
-        if (!$hotkey || !$hotkey->enabled) {
-            Log::warning('Hotkey not found or disabled', ['id' => $hotkeyId]);
+        if (!$hotkey) {
+            Log::warning('HotkeyDispatcher: hotkey not found in DB', ['id' => $hotkeyId]);
             return;
         }
 
-        Log::debug('Hotkey pressed', ['id' => $hotkeyId, 'name' => $hotkey->name]);
-
-        foreach ($hotkey->actions as $action) {
-            $this->executeAction($action);
-        }
-    }
-
-    private function executeAction($action): void
-    {
-        try {
-            $this->actionRunner->executeAction($action->type, $action->payload)
-                ->then(
-                    function ($result) use ($action) {
-                        Log::debug('Action executed successfully', [
-                            'type' => $action->type,
-                            'result' => $result,
-                        ]);
-                    },
-                    function (\Throwable $e) use ($action) {
-                        Log::error('Action execution failed', [
-                            'type' => $action->type,
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
-                );
-        } catch (\Throwable $e) {
-            Log::error('Failed to execute action', [
-                'type' => $action->type,
-                'error' => $e->getMessage(),
+        if (!$hotkey->enabled) {
+            Log::warning('HotkeyDispatcher: hotkey is disabled, skipping', [
+                'id'   => $hotkeyId,
+                'name' => $hotkey->name,
             ]);
+            return;
         }
+
+        Log::info('HotkeyDispatcher: dispatching actions', [
+            'id'           => $hotkeyId,
+            'name'         => $hotkey->name,
+            'action_count' => $hotkey->actions->count(),
+        ]);
+
+        // ObsHotkeyRunner handles connect/execute/disconnect within an isolated
+        // event loop — safe to call synchronously from this HTTP request.
+        $this->runner->runActions($hotkey->actions, $hotkey->name);
     }
 }
-
