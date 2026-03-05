@@ -2,6 +2,11 @@
 
 A macOS menu bar application built with **NativePHP + Laravel**, controlling **OBS Studio** via **OBS WebSocket v5**. Register global hotkeys to switch scenes, mute/unmute inputs, adjust volumes, start/stop streaming & recording — all without touching OBS's UI.
 
+<img width="1778" height="936" alt="image" src="https://github.com/user-attachments/assets/c9147cae-ce3e-4751-b152-8b147da67454" />
+<img width="794" height="640" alt="image" src="https://github.com/user-attachments/assets/73e6e5ea-6edb-4ae2-ad88-e161ca929a97" />
+<img width="694" height="728" alt="image" src="https://github.com/user-attachments/assets/03f6ec4f-7ebc-4701-9b8b-751016b5f586" />
+<img width="694" height="716" alt="image" src="https://github.com/user-attachments/assets/d87f7742-0d5c-40c0-9b88-af5da8f7cce5" />
+
 ## Features
 
 - 🎯 **Menu Bar App** — runs quietly in your macOS menu bar
