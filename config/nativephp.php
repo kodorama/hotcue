@@ -44,7 +44,7 @@ return [
     /**
      * The Website of your application.
      */
-    'website' => env('NATIVEPHP_APP_WEBSITE', 'https://github.com/hotcue/hotcue'),
+    'website' => env('NATIVEPHP_APP_WEBSITE', 'https://github.com/kodorama/hotcue'),
 
     /**
      * The default service provider for your application. This provider
